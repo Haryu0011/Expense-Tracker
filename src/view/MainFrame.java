@@ -7,10 +7,10 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
-import javax.swing.RowSorter;
-import javax.swing.SortOrder;
+
 import java.awt.*;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.UUID;
 
 public class MainFrame extends JFrame {
@@ -102,7 +102,7 @@ public class MainFrame extends JFrame {
         // === PILL SORT DIMULAI DARI SINI ===
         sorter = new TableRowSorter<>(tableModel);
         table.setRowSorter(sorter);
-        sorter.setSortKeys(java.util.List.of(new RowSorter.SortKey(1, SortOrder.DESCENDING))); // default urut tanggal terbaru
+        sorter.setSortKeys(Arrays.asList(new RowSorter.SortKey(1, SortOrder.DESCENDING))); // default urut tanggal terbaru
 
         JPanel centerPanel = new JPanel(new BorderLayout());
         
@@ -130,10 +130,10 @@ public class MainFrame extends JFrame {
         sortGroup.add(pillAmount);
 
         pillDate.addActionListener(e -> 
-            sorter.setSortKeys(java.util.List.of(new RowSorter.SortKey(1, SortOrder.DESCENDING)))
+            sorter.setSortKeys(Arrays.asList(new RowSorter.SortKey(1, SortOrder.DESCENDING)))
         );
         pillAmount.addActionListener(e -> 
-            sorter.setSortKeys(java.util.List.of(new RowSorter.SortKey(5, SortOrder.DESCENDING)))
+            sorter.setSortKeys(Arrays.asList(new RowSorter.SortKey(5, SortOrder.DESCENDING)))
         );
 
         sortPanel.add(lblSort);
