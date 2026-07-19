@@ -13,19 +13,27 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.UUID;
 
+/**
+ * Main application window for the expense tracker.
+ * Provides forms for adding/removing expenses, a sortable table,
+ * and a dashboard tab for summaries and charts.
+ */
 public class MainFrame extends JFrame {
     private ExpenseManager manager;
     private DashboardPanel dashboardPanel;
 
     private JTable table;
     private DefaultTableModel tableModel;
-    private TableRowSorter<DefaultTableModel> sorter; // <-- tambah ini
+    private TableRowSorter<DefaultTableModel> sorter;
     private JTextField txtDate, txtAmount, txtQuantity, txtDescription;
     private JComboBox<String> cbCategory;
 
+    /**
+     * Creates the main window, initializes the UI, and loads saved expenses.
+     */
     public MainFrame() {
         manager = new ExpenseManager();
-        
+
         setTitle("Simple Expense Tracker");
         setSize(1000, 600);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -33,7 +41,7 @@ public class MainFrame extends JFrame {
 
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.addTab("Manage Expenses", createDataEntryPanel());
-        
+
         dashboardPanel = new DashboardPanel(manager);
         tabbedPane.addTab("Dashboard & Charts", dashboardPanel);
 
@@ -44,6 +52,12 @@ public class MainFrame extends JFrame {
         tabbedPane.addChangeListener(e -> refreshData());
     }
 
+    /**
+     * Builds the expense entry panel, including input fields, buttons,
+     * sorting controls, and the expense table.
+     *
+     * @return the created panel
+     */
     private JPanel createDataEntryPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
@@ -56,7 +70,6 @@ public class MainFrame extends JFrame {
         txtQuantity = new JTextField("1");
         txtDescription = new JTextField();
 
-        // Label Indonesia banget
         inputPanel.add(new JLabel("Tanggal (YYYY-MM-DD):"));
         inputPanel.add(new JLabel("Kategori:"));
         inputPanel.add(new JLabel("Harga Satuan (Rp):"));
@@ -79,11 +92,15 @@ public class MainFrame extends JFrame {
 
         panel.add(inputPanel, BorderLayout.NORTH);
 
-        // Table model simpan Double asli, bukan String
         tableModel = new DefaultTableModel(
             new String[]{"ID", "Tanggal", "Kategori", "Harga Satuan", "Qty", "Subtotal", "Keterangan"}, 0
         ) {
-            // Biar kolom angka ke kanan + bisa di-sort bener
+            /**
+             * Returns the Java type for each table column so sorting and rendering work correctly.
+             *
+             * @param columnIndex the column index
+             * @return the column class
+             */
             @Override
             public Class<?> getColumnClass(int columnIndex) {
                 if (columnIndex == 3 || columnIndex == 5) return Double.class;
@@ -94,18 +111,16 @@ public class MainFrame extends JFrame {
         };
         table = new JTable(tableModel);
 
-        // Renderer buat format Rupiah
         DefaultTableCellRenderer currencyRenderer = new CurrencyRenderer();
         table.getColumnModel().getColumn(3).setCellRenderer(currencyRenderer);
         table.getColumnModel().getColumn(5).setCellRenderer(currencyRenderer);
 
-        // === PILL SORT DIMULAI DARI SINI ===
         sorter = new TableRowSorter<>(tableModel);
         table.setRowSorter(sorter);
-        sorter.setSortKeys(Arrays.asList(new RowSorter.SortKey(1, SortOrder.DESCENDING))); // default urut tanggal terbaru
+        sorter.setSortKeys(Arrays.asList(new RowSorter.SortKey(1, SortOrder.DESCENDING)));
 
         JPanel centerPanel = new JPanel(new BorderLayout());
-        
+
         JPanel sortPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
         sortPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
@@ -121,7 +136,6 @@ public class MainFrame extends JFrame {
         pillAmount.setMargin(new Insets(5, 15, 5, 15));
         pillDate.setSelected(true);
 
-        // Biar keliatan aktif
         pillDate.addChangeListener(e -> stylePill(pillDate));
         pillAmount.addChangeListener(e -> stylePill(pillAmount));
         stylePill(pillDate);
@@ -129,10 +143,10 @@ public class MainFrame extends JFrame {
         sortGroup.add(pillDate);
         sortGroup.add(pillAmount);
 
-        pillDate.addActionListener(e -> 
+        pillDate.addActionListener(e ->
             sorter.setSortKeys(Arrays.asList(new RowSorter.SortKey(1, SortOrder.DESCENDING)))
         );
-        pillAmount.addActionListener(e -> 
+        pillAmount.addActionListener(e ->
             sorter.setSortKeys(Arrays.asList(new RowSorter.SortKey(5, SortOrder.DESCENDING)))
         );
 
@@ -142,7 +156,6 @@ public class MainFrame extends JFrame {
 
         centerPanel.add(sortPanel, BorderLayout.NORTH);
         centerPanel.add(new JScrollPane(table), BorderLayout.CENTER);
-        // === SELESAI PILL ===
 
         panel.add(centerPanel, BorderLayout.CENTER);
 
@@ -152,6 +165,11 @@ public class MainFrame extends JFrame {
         return panel;
     }
 
+    /**
+     * Updates the visual style of a toggle button so it looks like an active pill.
+     *
+     * @param btn the toggle button to style
+     */
     private void stylePill(JToggleButton btn) {
         if (btn.isSelected()) {
             btn.setBackground(new Color(0, 120, 215));
@@ -162,8 +180,21 @@ public class MainFrame extends JFrame {
         }
     }
 
-    // Renderer Rupiah
+    /**
+     * Table cell renderer that formats numeric values as Indonesian Rupiah.
+     */
     class CurrencyRenderer extends DefaultTableCellRenderer {
+        /**
+         * Formats table values for display.
+         *
+         * @param table the table
+         * @param value the cell value
+         * @param isSelected whether the cell is selected
+         * @param hasFocus whether the cell has focus
+         * @param row the row index
+         * @param column the column index
+         * @return the component used to render the cell
+         */
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
@@ -175,6 +206,9 @@ public class MainFrame extends JFrame {
         }
     }
 
+    /**
+     * Reads the form values, creates a new expense, and adds it to storage.
+     */
     private void addExpense() {
         try {
             Expense exp = new Expense(
@@ -195,8 +229,11 @@ public class MainFrame extends JFrame {
         }
     }
 
+    /**
+     * Deletes the selected expense from the table and data store.
+     */
     private void deleteExpense() {
-        int row = table.convertRowIndexToModel(table.getSelectedRow()); // penting kalo udah di-sort
+        int row = table.convertRowIndexToModel(table.getSelectedRow());
         if (row >= 0) {
             String id = tableModel.getValueAt(row, 0).toString();
             manager.deleteExpense(id);
@@ -206,22 +243,30 @@ public class MainFrame extends JFrame {
         }
     }
 
+    /**
+     * Reloads all expense data into the table and refreshes the dashboard.
+     */
     private void refreshData() {
         tableModel.setRowCount(0);
         for (Expense exp : manager.getExpenses()) {
             tableModel.addRow(new Object[]{
-                exp.getId(), 
-                exp.getDate(), // LocalDate asli
-                exp.getCategory(), 
-                exp.getUnitPrice(), // Double asli
-                exp.getQuantity(), 
-                exp.getSubtotal(), // Double asli
+                exp.getId(),
+                exp.getDate(),
+                exp.getCategory(),
+                exp.getUnitPrice(),
+                exp.getQuantity(),
+                exp.getSubtotal(),
                 exp.getDescription()
             });
         }
         dashboardPanel.refreshDashboard();
     }
 
+    /**
+     * Application entry point.
+     *
+     * @param args command-line arguments
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(MainFrame::new);
     }

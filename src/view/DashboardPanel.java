@@ -8,11 +8,21 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Map;
 
+/**
+ * A dashboard panel that displays expense summaries and a pie chart
+ * for the current month's spending by category.
+ */
 public class DashboardPanel extends JPanel {
     private ExpenseManager manager;
     private JLabel lblDailyTotal, lblMonthlyTotal, lblTotal, lblBudgetRemaining;
     private NativePieChart pieChart;
 
+    /**
+     * Creates a dashboard panel and initializes the summary labels
+     * and pie chart.
+     *
+     * @param manager the expense manager used to calculate totals
+     */
     public DashboardPanel(ExpenseManager manager) {
         this.manager = manager;
         setLayout(new BorderLayout());
@@ -42,6 +52,9 @@ public class DashboardPanel extends JPanel {
         add(pieChart, BorderLayout.CENTER);
     }
 
+    /**
+     * Refreshes the dashboard values and redraws the pie chart.
+     */
     public void refreshDashboard() {
         double daily = manager.calculateTotal(LocalDate.now(), null);
         double monthly = manager.calculateTotal(null, YearMonth.now());
@@ -56,20 +69,34 @@ public class DashboardPanel extends JPanel {
         lblBudgetRemaining.setForeground(remaining < 0 ? Color.RED : new Color(0, 128, 0));
 
         pieChart.setData(manager.getCategoryTotalsForCurrentMonth());
-        pieChart.repaint(); // Tell Java to redraw the chart
+        pieChart.repaint();
     }
 
-    // --- CUSTOM NATIVE PIE CHART (NO EXTERNAL JARS NEEDED) ---
+    /**
+     * Custom pie chart component used to draw expense data without external libraries.
+     */
     private class NativePieChart extends JPanel {
         private Map<String, Double> data;
-        private Color[] colors = { Color.decode("#FF6B6B"), Color.decode("#4ECDC4"),
-                Color.decode("#45B7D1"), Color.decode("#F9CA24"),
-                Color.decode("#A55EEA") };
+        private Color[] colors = {
+            Color.decode("#FF6B6B"), Color.decode("#4ECDC4"),
+            Color.decode("#45B7D1"), Color.decode("#F9CA24"),
+            Color.decode("#A55EEA")
+        };
 
+        /**
+         * Sets the chart data and prepares it for painting.
+         *
+         * @param data category totals to display
+         */
         public void setData(Map<String, Double> data) {
             this.data = data;
         }
 
+        /**
+         * Paints the pie chart and legend.
+         *
+         * @param g the graphics context
+         */
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
@@ -86,14 +113,12 @@ public class DashboardPanel extends JPanel {
             int colorIndex = 0;
             int legendY = 20;
 
-            // Draw the Pie and the Legend
             for (Map.Entry<String, Double> entry : data.entrySet()) {
                 int arcAngle = (int) Math.round((entry.getValue() / total) * 360.0);
 
                 g2d.setColor(colors[colorIndex % colors.length]);
                 g2d.fillArc(50, 20, 250, 250, startAngle, arcAngle);
 
-                // Draw Legend text
                 g2d.fillRect(350, legendY - 10, 15, 15);
                 g2d.setColor(Color.BLACK);
                 String legendText = String.format("%s: Rp %,.0f", entry.getKey(), entry.getValue());
